@@ -27,18 +27,6 @@ int MainCmds::runtests(int argc, const char* const* argv) {
   ComputeElos::runTests();
 
 
-  Tests::runBoardIOTests();
-  Tests::runBoardBasicTests();
-  Tests::runBoardAreaTests();
-
-  Tests::runRulesTests();
-
-  Tests::runBoardUndoTest();
-  Tests::runBoardHandicapTest();
-  Tests::runBoardStressTest();
-
-  Tests::runSgfTests();
-
   ScoreValue::freeTables();
 
   cout << "All tests passed" << endl;
@@ -50,12 +38,6 @@ int MainCmds::runoutputtests(int argc, const char* const* argv) {
   (void)argv;
   Board::initHash();
   ScoreValue::initTables();
-
-  Tests::runNNInputsV3V4Tests();
-  Tests::runNNLessSearchTests();
-  Tests::runTrainingWriteTests();
-  Tests::runTimeControlsTests();
-  Tests::runScoreTests();
 
   ScoreValue::freeTables();
 
@@ -70,14 +52,6 @@ int MainCmds::runsearchtests(int argc, const char* const* argv) {
     cerr << "Must supply exactly five arguments: MODEL_FILE INPUTSNHWC CUDANHWC SYMMETRY FP16" << endl;
     return 1;
   }
-  Tests::runSearchTests(
-    string(argv[1]),
-    Global::stringToBool(argv[2]),
-    Global::stringToBool(argv[3]),
-    Global::stringToInt(argv[4]),
-    Global::stringToBool(argv[5])
-  );
-
   ScoreValue::freeTables();
 
   return 0;
@@ -91,13 +65,6 @@ int MainCmds::runsearchtestsv3(int argc, const char* const* argv) {
     cerr << "Must supply exactly five arguments: MODEL_FILE INPUTSNHWC CUDANHWC SYMMETRY FP16" << endl;
     return 1;
   }
-  Tests::runSearchTestsV3(
-    string(argv[1]),
-    Global::stringToBool(argv[2]),
-    Global::stringToBool(argv[3]),
-    Global::stringToInt(argv[4]),
-    Global::stringToBool(argv[5])
-  );
 
   ScoreValue::freeTables();
 
@@ -112,13 +79,6 @@ int MainCmds::runsearchtestsv8(int argc, const char* const* argv) {
     cerr << "Must supply exactly four arguments: MODEL_FILE INPUTSNHWC CUDANHWC FP16" << endl;
     return 1;
   }
-  Tests::runSearchTestsV8(
-    string(argv[1]),
-    Global::stringToBool(argv[2]),
-    Global::stringToBool(argv[3]),
-    Global::stringToBool(argv[4])
-  );
-
   ScoreValue::freeTables();
 
   return 0;
@@ -133,12 +93,6 @@ int MainCmds::runselfplayinittests(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runSelfplayInitTestsWithNN(
-    string(argv[1])
-  );
-  Tests::runMoreSelfplayTestsWithNN(
-    string(argv[1])
-  );
 
   ScoreValue::freeTables();
 
@@ -154,9 +108,6 @@ int MainCmds::runsekitrainwritetests(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runSekiTrainWriteTests(
-    string(argv[1])
-  );
 
   ScoreValue::freeTables();
 
@@ -166,7 +117,6 @@ int MainCmds::runsekitrainwritetests(int argc, const char* const* argv) {
 int MainCmds::runnnlayertests(int argc, const char* const* argv) {
   (void)argc;
   (void)argv;
-  Tests::runNNLayerTests();
   return 0;
 }
 
@@ -178,13 +128,6 @@ int MainCmds::runnnontinyboardtest(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runNNOnTinyBoard(
-    string(argv[1]),
-    Global::stringToBool(argv[2]),
-    Global::stringToBool(argv[3]),
-    Global::stringToInt(argv[4]),
-    Global::stringToBool(argv[5])
-  );
 
   ScoreValue::freeTables();
 
@@ -199,12 +142,6 @@ int MainCmds::runnnsymmetriestest(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runNNSymmetries(
-    string(argv[1]),
-    Global::stringToBool(argv[2]),
-    Global::stringToBool(argv[3]),
-    Global::stringToBool(argv[4])
-  );
 
   ScoreValue::freeTables();
 
@@ -219,26 +156,6 @@ int MainCmds::runnnonmanyposestest(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  if(argc == 6) {
-    Tests::runNNOnManyPoses(
-      string(argv[1]),
-      Global::stringToBool(argv[2]),
-      Global::stringToBool(argv[3]),
-      Global::stringToInt(argv[4]),
-      Global::stringToBool(argv[5]),
-      ""
-    );
-  }
-  else if(argc == 7) {
-    Tests::runNNOnManyPoses(
-      string(argv[1]),
-      Global::stringToBool(argv[2]),
-      Global::stringToBool(argv[3]),
-      Global::stringToInt(argv[4]),
-      Global::stringToBool(argv[5]),
-      string(argv[6])
-    );
-  }
 
   ScoreValue::freeTables();
 
@@ -253,10 +170,6 @@ int MainCmds::runownershiptests(int argc, const char* const* argv) {
   Board::initHash();
   ScoreValue::initTables();
 
-  Tests::runOwnershipTests(
-    string(argv[1]),
-    string(argv[2])
-  );
 
   ScoreValue::freeTables();
   return 0;

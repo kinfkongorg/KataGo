@@ -48,7 +48,7 @@ namespace PlayUtils {
 
   void adjustKomiToEven(
     Search* botB,
-    Search* botW, //can be NULL if only one bot
+    Search* botW,
     const Board& board,
     BoardHistory& hist,
     Player pla,
@@ -61,7 +61,7 @@ namespace PlayUtils {
   //Lead from WHITE's perspective
   float computeLead(
     Search* botB,
-    Search* botW, //can be NULL if only one bot
+    Search* botW,
     const Board& board,
     BoardHistory& hist,
     Player pla,
@@ -100,14 +100,14 @@ namespace PlayUtils {
   //Determine all living and dead stones, trying to be clever and use the ownership prediction
   //of the neural net.
   //Returns a vector indexed by board Loc (length Board::MAX_ARR_SIZE).
-  std::vector<bool> computeAnticipatedStatusesWithOwnership(
+  /*std::vector<bool> computeAnticipatedStatusesWithOwnership(
     Search* bot,
     const Board& board,
     const BoardHistory& hist,
     Player pla,
     int64_t numVisits,
     Logger& logger
-  );
+  );*/
 
 }
 

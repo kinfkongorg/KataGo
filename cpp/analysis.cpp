@@ -138,7 +138,7 @@ int MainCmds::analysis(int argc, const char* const* argv) {
 
       int minMoves = 0;
       vector<AnalysisData> buf;
-      const Search* search = bot->getSearch();
+      Search* search = bot->getSearch();
       search->getAnalysisData(buf,minMoves,false,request->analysisPVLen);
 
       json moveInfos = json::array();
@@ -498,22 +498,6 @@ int MainCmds::analysis(int argc, const char* const* argv) {
       }
     }
 
-    if(input.find("whiteHandicapBonus") != input.end()) {
-      if(!input["whiteHandicapBonus"].is_string()) {
-        reportErrorForId(rbase.id, "whiteHandicapBonus", "Must be a string");
-        continue;
-      }
-      string s = input["whiteHandicapBonus"].get<string>();
-      try {
-        int whiteHandicapBonusRule = Rules::parseWhiteHandicapBonusRule(s);
-        rules.whiteHandicapBonusRule = whiteHandicapBonusRule;
-      }
-      catch(const StringError& err) {
-        reportErrorForId(rbase.id, "whiteHandicapBonus", err.what());
-        continue;
-      }
-    }
-
     if(input.find("maxVisits") != input.end()) {
       bool suc = parseInteger("maxVisits", rbase.maxVisits, 1, (int64_t)1 << 50, "Must be an integer from 1 to 2^50");
       if(!suc)
@@ -553,7 +537,7 @@ int MainCmds::analysis(int argc, const char* const* argv) {
       if(moveHistory.size() > 0)
         initialPlayer = moveHistory[0].pla;
       else
-        initialPlayer = BoardHistory::numHandicapStonesOnBoard(board) > 0 ? P_WHITE : P_BLACK;
+        initialPlayer =  P_BLACK;
     }
 
     bool rulesWereSupported;
@@ -566,7 +550,7 @@ int MainCmds::analysis(int argc, const char* const* argv) {
     }
 
     Player nextPla = initialPlayer;
-    BoardHistory hist(board,nextPla,rules,0);
+    BoardHistory hist(board,nextPla,rules);
     hist.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
 
     //Build and enqueue requests
@@ -593,7 +577,7 @@ int MainCmds::analysis(int argc, const char* const* argv) {
       Player movePla = moveHistory[turnNumber].pla;
       Loc moveLoc = moveHistory[turnNumber].loc;
       if(movePla != nextPla) {
-        hist.clear(board,movePla,rules,hist.encorePhase);
+        hist.clear(board,movePla,rules);
         hist.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
       }
 

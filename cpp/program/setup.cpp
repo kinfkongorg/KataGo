@@ -176,7 +176,7 @@ vector<NNEvaluator*> Setup::initializeNNEvaluators(
     std::sort(gpuIdxs.begin(), gpuIdxs.end());
     std::unique(gpuIdxs.begin(), gpuIdxs.end());
 
-    enabled_t useFP16Mode = enabled_t::Auto;
+    enabled_t useFP16Mode = enabled_t::AUTO;
     if(cfg.contains(backendPrefix+"UseFP16-"+idxStr))
       useFP16Mode = cfg.getEnabled(backendPrefix+"UseFP16-"+idxStr);
     else if(cfg.contains("useFP16-"+idxStr))
@@ -186,7 +186,7 @@ vector<NNEvaluator*> Setup::initializeNNEvaluators(
     else if(cfg.contains("useFP16"))
       useFP16Mode = cfg.getEnabled("useFP16");
 
-    enabled_t useNHWCMode = enabled_t::Auto;
+    enabled_t useNHWCMode = enabled_t::AUTO;
     if(cfg.contains(backendPrefix+"UseNHWC"+idxStr))
       useNHWCMode = cfg.getEnabled(backendPrefix+"UseNHWC"+idxStr);
     else if(cfg.contains("useNHWC"+idxStr))
@@ -501,43 +501,12 @@ Rules Setup::loadSingleRulesExceptForKomi(
 ) {
   Rules rules;
 
-  string koRule = cfg.getString("koRule", Rules::koRuleStrings());
   string scoringRule = cfg.getString("scoringRule", Rules::scoringRuleStrings());
-  bool multiStoneSuicideLegal = cfg.getBool("multiStoneSuicideLegal");
-  bool hasButton = cfg.contains("hasButton") ? cfg.getBool("hasButton") : false;
-  float komi = 7.5f;
+  float komi = -0.5f;
 
-  rules.koRule = Rules::parseKoRule(koRule);
   rules.scoringRule = Rules::parseScoringRule(scoringRule);
-  rules.multiStoneSuicideLegal = multiStoneSuicideLegal;
-  rules.hasButton = hasButton;
   rules.komi = komi;
 
-  if(cfg.contains("taxRule")) {
-    string taxRule = cfg.getString("taxRule", Rules::taxRuleStrings());
-    rules.taxRule = Rules::parseTaxRule(taxRule);
-  }
-  else {
-    rules.taxRule = (rules.scoringRule == Rules::SCORING_TERRITORY ? Rules::TAX_SEKI : Rules::TAX_NONE);
-  }
-
-  if(rules.hasButton && rules.scoringRule != Rules::SCORING_AREA)
-    throw StringError("Config specifies hasButton=true on a scoring system other than AREA");
-
-  //Also handles parsing of legacy option whiteBonusPerHandicapStone
-  if(cfg.contains("whiteBonusPerHandicapStone") && cfg.contains("whiteHandicapBonus"))
-    throw StringError("May specify only one of whiteBonusPerHandicapStone and whiteHandicapBonus in config");
-  else if(cfg.contains("whiteHandicapBonus"))
-    rules.whiteHandicapBonusRule = Rules::parseWhiteHandicapBonusRule(cfg.getString("whiteHandicapBonus", Rules::whiteHandicapBonusRuleStrings()));
-  else if(cfg.contains("whiteBonusPerHandicapStone")) {
-    int whiteBonusPerHandicapStone = cfg.getInt("whiteBonusPerHandicapStone",0,1);
-    if(whiteBonusPerHandicapStone == 0)
-      rules.whiteHandicapBonusRule = Rules::WHB_ZERO;
-    else
-      rules.whiteHandicapBonusRule = Rules::WHB_N;
-  }
-  else
-    rules.whiteHandicapBonusRule = Rules::WHB_ZERO;
 
   return rules;
 }

@@ -207,7 +207,6 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, const string& rSeed)
   assert(nnXLen > 0 && nnXLen <= NNPos::MAX_BOARD_LEN);
   assert(nnYLen > 0 && nnYLen <= NNPos::MAX_BOARD_LEN);
   policySize = NNPos::getPolicySize(nnXLen,nnYLen);
-  rootKoHashTable = new KoHashTable();
 
   rootSafeArea = new Color[Board::MAX_ARR_SIZE];
 
@@ -222,13 +221,11 @@ Search::Search(SearchParams params, NNEvaluator* nnEval, const string& rSeed)
   rootNode = NULL;
   mutexPool = new MutexPool(params.mutexPoolSize);
 
-  rootHistory.clear(rootBoard,rootPla,Rules(),0);
-  rootKoHashTable->recompute(rootHistory);
+  rootHistory.clear(rootBoard,rootPla,Rules());
 }
 
 Search::~Search() {
   delete[] rootSafeArea;
-  delete rootKoHashTable;
   delete valueWeightDistribution;
   delete rootNode;
   delete mutexPool;
@@ -249,21 +246,18 @@ void Search::setPosition(Player pla, const Board& board, const BoardHistory& his
   rootPla = pla;
   rootBoard = board;
   rootHistory = history;
-  rootKoHashTable->recompute(rootHistory);
 }
 
 void Search::setPlayerAndClearHistory(Player pla) {
   clearSearch();
   rootPla = pla;
-  rootBoard.clearSimpleKoLoc();
   Rules rules = rootHistory.rules;
+  rootHistory.clear(rootBoard,rootPla,rules);
+}
 
-  //Preserve this value even when we get multiple moves in a row by some player
-  bool assumeMultipleStartingBlackMovesAreHandicap = rootHistory.assumeMultipleStartingBlackMovesAreHandicap;
-  rootHistory.clear(rootBoard,rootPla,rules,rootHistory.encorePhase);
-  rootHistory.setAssumeMultipleStartingBlackMovesAreHandicap(assumeMultipleStartingBlackMovesAreHandicap);
-
-  rootKoHashTable->recompute(rootHistory);
+void Search::setRulesAndClearHistory(Rules rules, int encorePhase) {
+  clearSearch();
+  rootHistory.clear(rootBoard,rootPla,rules);
 }
 
 void Search::setKomiIfNew(float newKomi) {
@@ -316,18 +310,10 @@ bool Search::isLegalTolerant(Loc moveLoc, Player movePla) const {
   //clear the ko loc - the simple ko loc of a player should not prohibit the opponent playing there!
   if(movePla != rootPla) {
     Board copy = rootBoard;
-    copy.clearSimpleKoLoc();
-    return copy.isLegal(moveLoc,movePla,multiStoneSuicideLegal);
+    return copy.isLegal(moveLoc,movePla,false);
   }
   else {
-    //Don't require that the move is legal for the history, merely the board, so that
-    //we're robust to GTP or an sgf file saying that a move was made that violates superko or things like that.
-    //In the encore, we also need to ignore the simple ko loc, since the board itself will report a move as illegal
-    //when actually it is a legal pass-for-ko.
-    if(rootHistory.encorePhase >= 1)
-      return rootBoard.isLegalIgnoringKo(moveLoc,rootPla,multiStoneSuicideLegal);
-    else
-      return rootBoard.isLegal(moveLoc,rootPla,multiStoneSuicideLegal);
+      return rootBoard.isLegal(moveLoc,rootPla,false);
   }
 }
 
@@ -365,26 +351,11 @@ bool Search::makeMove(Loc moveLoc, Player movePla, bool preventEncore) {
       clearSearch();
     }
   }
-  //If the white handicap bonus changes due to the move, we will also need to recompute everything since this is
-  //basically like a change to the komi.
-  float oldWhiteHandicapBonusScore = rootHistory.whiteHandicapBonusScore;
 
-  rootHistory.makeBoardMoveAssumeLegal(rootBoard,moveLoc,rootPla,rootKoHashTable,preventEncore);
+  rootHistory.makeBoardMoveAssumeLegal(rootBoard,moveLoc,rootPla,preventEncore);
   rootPla = getOpp(rootPla);
-  rootKoHashTable->recompute(rootHistory);
 
-  if(rootHistory.whiteHandicapBonusScore != oldWhiteHandicapBonusScore)
-    clearSearch();
 
-  //TODO test this and other conservativepass
-  //In the case that we are conservativePass and a pass would end the game, need to clear the search.
-  //This is because deeper in the tree, such a node would have been explored as ending the game, but now that
-  //it's a root pass, it needs to be treated as if it no longer ends the game.
-  //In the case that we're preventing encore, and the phase would have ended, we also need to clear the search
-  //since the search was conducted on the assumption that we're going into encore now.
-  if((searchParams.conservativePass && rootHistory.passWouldEndGame(rootBoard,rootPla)) ||
-     (preventEncore && rootHistory.passWouldEndPhase(rootBoard,rootPla)))
-    clearSearch();
 
   return true;
 }
@@ -742,7 +713,7 @@ void Search::computeRootValues(Logger& logger) {
   bool nonPassAliveStones = false;
   bool safeBigTerritories = false;
   bool unsafeBigTerritories = false;
-  bool isMultiStoneSuicideLegal = rootHistory.rules.multiStoneSuicideLegal;
+  bool isMultiStoneSuicideLegal = false;
   rootBoard.calculateArea(
     rootSafeArea,
     nonPassAliveStones,
@@ -1099,126 +1070,13 @@ double Search::getExploreSelectionValueInverse(
 
 //Parent must be locked
 double Search::getEndingWhiteScoreBonus(const SearchNode& parent, const SearchNode* child) const {
-  if(&parent != rootNode || child->prevMoveLoc == Board::NULL_LOC)
-    return 0.0;
-  if(parent.nnOutput == nullptr || parent.nnOutput->whiteOwnerMap == NULL)
-    return 0.0;
-
-  bool isAreaIsh = rootHistory.rules.scoringRule == Rules::SCORING_AREA
-    || (rootHistory.rules.scoringRule == Rules::SCORING_TERRITORY && rootHistory.encorePhase >= 2);
-  assert(parent.nnOutput->nnXLen == nnXLen);
-  assert(parent.nnOutput->nnYLen == nnYLen);
-  float* whiteOwnerMap = parent.nnOutput->whiteOwnerMap;
-  Loc moveLoc = child->prevMoveLoc;
-
-  const double extreme = 0.95;
-  const double tail = 0.05;
-
-  //Extra points from the perspective of the root player
-  double extraRootPoints = 0.0;
-  if(isAreaIsh) {
-    //Areaish scoring - in an effort to keep the game short and slightly discourage pointless territory filling at the end
-    //discourage any move that, except in case of ko, is either:
-    // * On a spot that the opponent almost surely owns
-    // * On a spot that the player almost surely owns and it is not adjacent to opponent stones and is not a connection of non-pass-alive groups.
-    //These conditions should still make it so that "cleanup" and dame-filling moves are not discouraged.
-    if(moveLoc != Board::PASS_LOC && rootBoard.ko_loc == Board::NULL_LOC) {
-      int pos = NNPos::locToPos(moveLoc,rootBoard.x_size,nnXLen,nnYLen);
-      double plaOwnership = rootPla == P_WHITE ? whiteOwnerMap[pos] : -whiteOwnerMap[pos];
-      //if(rootSafeArea[moveLoc] == rootPla) plaOwnership = 1.0;
-      //if(rootSafeArea[moveLoc] == getOpp(rootPla)) plaOwnership = -1.0;
-
-      if(plaOwnership <= -extreme)
-        extraRootPoints -= searchParams.rootEndingBonusPoints * ((-extreme - plaOwnership) / tail);
-      else if(plaOwnership >= extreme) {
-        if(!rootBoard.isAdjacentToPla(moveLoc,getOpp(rootPla)) &&
-           !rootBoard.isNonPassAliveSelfConnection(moveLoc,rootPla,rootSafeArea)) {
-          extraRootPoints -= searchParams.rootEndingBonusPoints * ((plaOwnership - extreme) / tail);
-        }
-      }
-    }
-  }
-  else {
-    //Territorish scoring - slightly encourage dame-filling by discouraging passing, so that the player will try to do everything
-    //non-point-losing first, like filling dame.
-    //Human japanese rules often "want" you to fill the dame so this is a cosmetic adjustment to encourage the neural
-    //net to learn to do so in the main phase rather than waiting until the encore.
-    //But cosmetically, it's also not great if we just encourage useless threat moves in the opponent's territory to prolong the game.
-    //So also discourage those moves except in cases of ko. Also similar to area scoring just to be symmetrical, discourage moves on spots
-    //that the player almost surely owns that are not adjacent to opponent stones and are not a connection of non-pass-alive groups.
-    if(moveLoc == Board::PASS_LOC)
-      extraRootPoints -= searchParams.rootEndingBonusPoints * (2.0/3.0);
-    else if(rootBoard.ko_loc == Board::NULL_LOC) {
-      int pos = NNPos::locToPos(moveLoc,rootBoard.x_size,nnXLen,nnYLen);
-      double plaOwnership = rootPla == P_WHITE ? whiteOwnerMap[pos] : -whiteOwnerMap[pos];
-      if(plaOwnership <= -extreme)
-        extraRootPoints -= searchParams.rootEndingBonusPoints * ((-extreme - plaOwnership) / tail);
-      else if(plaOwnership >= extreme) {
-        if(!rootBoard.isAdjacentToPla(moveLoc,getOpp(rootPla)) &&
-           !rootBoard.isNonPassAliveSelfConnection(moveLoc,rootPla,rootSafeArea)) {
-          extraRootPoints -= searchParams.rootEndingBonusPoints * ((plaOwnership - extreme) / tail);
-        }
-      }
-    }
-  }
-
-  if(rootPla == P_WHITE)
-    return extraRootPoints;
-  else
-    return -extraRootPoints;
-}
-
-static bool nearWeakStones(const Board& board, Loc loc, Player pla) {
-  Player opp = getOpp(pla);
-  for(int i = 0; i < 4; i++) {
-    Loc adj = loc + board.adj_offsets[i];
-    if(board.colors[adj] == opp && board.getNumLiberties(adj) <= 4)
-      return true;
-    else if(board.colors[adj] == C_EMPTY) {
-      for(int j = 0; j < 4; j++) {
-        Loc adjadj = adj + board.adj_offsets[j];
-        if(board.colors[adjadj] == opp) {
-          if(board.getNumLiberties(adjadj) <= 3)
-            return true;
-        }
-      }
-    }
-  }
-  return false;
+	return 0.0;
 }
 
 float Search::adjustExplorePolicyProb(
   const SearchThread& thread, const SearchNode& parent, Loc moveLoc, float nnPolicyProb,
   double parentUtility, double totalChildVisits, double childVisits, double& childUtility
 ) const {
-  (void)totalChildVisits;
-  //Near the tree root, explore local moves a bit more for root player
-  if(searchParams.localExplore &&
-     parent.nextPla == rootPla && thread.history.moveHistory.size() > 0 &&
-     thread.history.moveHistory.size() <= rootHistory.moveHistory.size() + 2
-  ) {
-    Loc prevLoc = thread.history.moveHistory[thread.history.moveHistory.size()-1].loc;
-    if(moveLoc != Board::PASS_LOC && prevLoc != Board::PASS_LOC) {
-      //Within sqrt(5) of the opponent's move
-      //Within 2 of a group with <= 3 liberties, or touching opp stone with <= 4 liberties
-      //Not self atari
-      const Board& board = thread.board;
-      int distanceSq = Location::euclideanDistanceSquared(moveLoc,prevLoc,board.x_size);
-      if(distanceSq <= 5 && board.getNumLibertiesAfterPlay(moveLoc,parent.nextPla,2) >= 2) {
-        if(nearWeakStones(board, moveLoc, parent.nextPla)) {
-          float averageToward = distanceSq <= 2 ? 0.06f : distanceSq <= 4 ? 0.04f : 0.03f;
-          //Behave as if policy is a few points higher
-          if(nnPolicyProb < averageToward)
-            nnPolicyProb = 0.5f * (nnPolicyProb + averageToward);
-          if(childVisits > 0 && (parent.nextPla == P_WHITE ? (childUtility < parentUtility) : (childUtility > parentUtility))) {
-            //Also encourage a bit more exploration even if value is bad
-            double parentWeight = sqrt(childVisits);
-            childUtility = (parentUtility * parentWeight + childUtility * childVisits) / (parentWeight + childVisits);
-          }
-        }
-      }
-    }
-  }
   return nnPolicyProb;
 }
 
@@ -1666,7 +1524,7 @@ void Search::maybeRecomputeExistingNNOutput(
     //If conservative passing, then we may also need to recompute the root policy ignoring the history if a pass ends the game
     //If averaging a bunch of symmetries, then we need to recompute it too
     if(node.nnOutput->whiteOwnerMap == NULL ||
-       (searchParams.conservativePass && thread.history.passWouldEndGame(thread.board,thread.pla)) ||
+       (searchParams.conservativePass && thread.history.consecutiveEndingPasses>=1) ||
        searchParams.rootNumSymmetriesToSample > 1
     ) {
       initNodeNNOutput(thread,node,isRoot,false,0,true);
@@ -1836,7 +1694,7 @@ void Search::playoutDescend(
   SearchNode* child;
   if(bestChildIdx == node.numChildren) {
     assert(thread.history.isLegal(thread.board,moveLoc,thread.pla));
-    thread.history.makeBoardMoveAssumeLegal(thread.board,moveLoc,thread.pla,rootKoHashTable);
+    thread.history.makeBoardMoveAssumeLegal(thread.board,moveLoc,thread.pla);
     thread.pla = getOpp(thread.pla);
 
     node.numChildren++;
@@ -1860,7 +1718,7 @@ void Search::playoutDescend(
     lock.unlock();
 
     assert(thread.history.isLegal(thread.board,moveLoc,thread.pla));
-    thread.history.makeBoardMoveAssumeLegal(thread.board,moveLoc,thread.pla,rootKoHashTable);
+    thread.history.makeBoardMoveAssumeLegal(thread.board,moveLoc,thread.pla);
     thread.pla = getOpp(thread.pla);
   }
 

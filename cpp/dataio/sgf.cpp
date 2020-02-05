@@ -391,9 +391,7 @@ void Sgf::iterAllUniquePositions(
   if(nextPla == C_EMPTY)
     nextPla = C_BLACK;
   Rules rules = Rules::getTrompTaylorish();
-  rules.koRule = Rules::KO_SITUATIONAL;
-  rules.multiStoneSuicideLegal = true;
-  BoardHistory hist(board,nextPla,rules,0);
+  BoardHistory hist(board,nextPla,rules);
 
   XYSize size = getXYSize();
   int xSize = size.x;
@@ -427,7 +425,6 @@ void Sgf::iterAllUniquePositionsHelper(
             netStonesAdded++;
           board.setStone(buf[j].loc, buf[j].pla);
         }
-        board.clearSimpleKoLoc();
         //Clear history any time placements happen, but make sure we track the initial turn number.
         initialTurnNumber += hist.moveHistory.size();
 
@@ -437,7 +434,7 @@ void Sgf::iterAllUniquePositionsHelper(
         if(netStonesAdded > 0)
           initialTurnNumber += (netStonesAdded+1)/2;
 
-        hist.clear(board,nextPla,rules,0);
+        hist.clear(board,nextPla,rules);
       }
       samplePositionIfUniqueHelper(board,hist,nextPla,sampleBuf,initialTurnNumber,uniqueHashes,f);
     }
@@ -489,9 +486,6 @@ void Sgf::samplePositionIfUniqueHelper(
   //Hash based on position, player, and simple ko
   Hash128 situationHash = board.pos_hash;
   situationHash ^= Board::ZOBRIST_PLAYER_HASH[nextPla];
-  assert(hist.encorePhase == 0);
-  if(board.ko_loc != Board::NULL_LOC)
-    situationHash ^= Board::ZOBRIST_KO_LOC_HASH[board.ko_loc];
 
   if(contains(uniqueHashes,situationHash))
     return;
@@ -966,7 +960,7 @@ void CompactSgf::setupInitialBoardAndHist(const Rules& initialRules, Board& boar
     board.setStone(placements[i].loc,placements[i].pla);
   }
 
-  hist = BoardHistory(board,nextPla,initialRules,0);
+  hist = BoardHistory(board,nextPla,initialRules);
 }
 
 void CompactSgf::playMovesAssumeLegal(Board& board, Player& nextPla, BoardHistory& hist, int turnNumber) const {
@@ -1118,7 +1112,7 @@ void WriteSgf::writeSgf(
 
   string comment;
   Board board(initialBoard);
-  BoardHistory hist(board,endHist.initialPla,endHist.rules,endHist.initialEncorePhase);
+  BoardHistory hist(board,endHist.initialPla,endHist.rules);
   for(size_t i = 0; i<endHist.moveHistory.size(); i++) {
     comment.clear();
     out << ";";
@@ -1131,19 +1125,9 @@ void WriteSgf::writeSgf(
     else
       out << "W[";
 
-    bool isPassForKo = hist.isPassForKo(board,loc,pla);
-    if(isPassForKo)
-      writeSgfLoc(out,Board::PASS_LOC,xSize,ySize);
-    else
       writeSgfLoc(out,loc,xSize,ySize);
     out << "]";
 
-    if(isPassForKo) {
-      out << "TR[";
-      writeSgfLoc(out,loc,xSize,ySize);
-      out << "]";
-      comment += "Pass for ko";
-    }
 
     if(gameData != NULL && i >= startTurnIdx) {
       if(gameData->hasFullData) {

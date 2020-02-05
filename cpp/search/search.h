@@ -151,8 +151,6 @@ struct Search {
 
   std::string randSeed;
 
-  //Contains all koHashes of positions/situations up to and including the root
-  KoHashTable* rootKoHashTable;
 
   //Precomputed distribution for downweighting child values based on their values
   DistributionTable* valueWeightDistribution;
@@ -190,6 +188,7 @@ struct Search {
   void setPosition(Player pla, const Board& board, const BoardHistory& history);
 
   void setPlayerAndClearHistory(Player pla);
+  void setRulesAndClearHistory(Rules rules, int encorePhase);
   void setKomiIfNew(float newKomi); //Does not clear history, does clear search unless komi is equal.
   void setRootPassLegal(bool b);
   void setAlwaysIncludeOwnerMap(bool b);
@@ -331,8 +330,6 @@ private:
     double exploreSelectionValue, double nnPolicyProb, int64_t totalChildVisits,
     double childUtility, Player pla
   ) const;
-  double getPassingScoreValueBonus(const SearchNode& parent, const SearchNode* child, double scoreValue) const;
-
   bool getPlaySelectionValuesAlreadyLocked(
     const SearchNode& node,
     std::vector<Loc>& locs, std::vector<double>& playSelectionValues, double scaleMaxToAtLeast,

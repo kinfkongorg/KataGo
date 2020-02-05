@@ -154,8 +154,6 @@ int AnalysisData::getPVLenUpToPhaseEnd(const Board& initialBoard, const BoardHis
   for(j = 0; j<pv.size(); j++) {
     hist.makeBoardMoveAssumeLegal(board,pv[j],nextPla,NULL);
     nextPla = getOpp(nextPla);
-    if(hist.encorePhase != initialHist.encorePhase)
-      break;
   }
   return j;
 }
@@ -171,7 +169,5 @@ void AnalysisData::writePVUpToPhaseEnd(std::ostream& out, const Board& initialBo
 
     hist.makeBoardMoveAssumeLegal(board,pv[j],nextPla,NULL);
     nextPla = getOpp(nextPla);
-    if(hist.encorePhase != initialHist.encorePhase)
-      break;
   }
 }

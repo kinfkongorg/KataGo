@@ -94,7 +94,7 @@ void PlayUtils::playExtraBlack(
 
     assert(hist.isLegal(board,loc,pla));
     hist.makeBoardMoveAssumeLegal(board,loc,pla,NULL);
-    hist.clear(board,pla,hist.rules,0);
+    hist.clear(board,pla,hist.rules);
   }
 
   bot->setPosition(pla,board,hist);
@@ -416,7 +416,7 @@ float PlayUtils::computeLead(
   float oldKomi = hist.rules.komi;
   double naiveKomi = getNaiveEvenKomiHelper(scoreWLCache,botB,botW,board,hist,pla,numVisits,logger,otherGameProps,looseClipping);
 
-  bool granularityIsCoarse = hist.rules.scoringRule == Rules::SCORING_AREA && !hist.rules.hasButton;
+  bool granularityIsCoarse = hist.rules.scoringRule == Rules::SCORING_AREA ;
   if(!granularityIsCoarse) {
     assert(hist.rules.komi == oldKomi);
     return (float)(oldKomi - naiveKomi);
@@ -558,7 +558,7 @@ vector<bool> PlayUtils::computeAnticipatedStatusesSimple(
   }
   return isAlive;
 }
-
+/*
 vector<bool> PlayUtils::computeAnticipatedStatusesWithOwnership(
   Search* bot,
   const Board& board,
@@ -630,4 +630,4 @@ vector<bool> PlayUtils::computeAnticipatedStatusesWithOwnership(
   }
   return isAlive;
 
-}
+}*/

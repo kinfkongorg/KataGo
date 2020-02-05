@@ -146,7 +146,7 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
     vector<Loc> extraMoveLocs = Location::parseSequence(extraMoves,board);
     for(size_t i = 0; i<extraMoveLocs.size(); i++) {
       Loc loc = extraMoveLocs[i];
-      if(!board.isLegal(loc,nextPla,hist.rules.multiStoneSuicideLegal)) {
+      if(!board.isLegal(loc,nextPla,false)) {
         cerr << board << endl;
         cerr << "Extra illegal move for " << PlayerIO::colorToChar(nextPla) << ": " << Location::toString(loc,board) << endl;
         throw StringError("Illegal extra move");
@@ -233,7 +233,6 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
     nnEval->evaluate(board,hist,nextPla,nnInputParams,buf,NULL,skipCache,includeOwnerMap);
 
     cout << "Rules: " << hist.rules << endl;
-    cout << "Encore phase " << hist.encorePhase << endl;
     Board::printBoard(cout, board, Board::NULL_LOC, &(hist.moveHistory));
     buf.result->debugPrint(cout,board);
     return 0;
@@ -244,10 +243,9 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
   bot->setPosition(nextPla,board,hist);
 
   //Print initial state----------------------------------------------------------------
-  const Search* search = bot->getSearchStopAndWait();
+  Search* search = bot->getSearch();
   ostringstream sout;
   sout << "Rules: " << hist.rules << endl;
-  sout << "Encore phase " << hist.encorePhase << endl;
   Board::printBoard(sout, board, Board::NULL_LOC, &(hist.moveHistory));
 
   if(options.branch_.size() > 0) {
@@ -256,7 +254,7 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
     Player pla = nextPla;
     for(int i = 0; i<options.branch_.size(); i++) {
       Loc loc = options.branch_[i];
-      if(!copy.isLegal(loc,pla,copyHist.rules.multiStoneSuicideLegal)) {
+      if(!copy.isLegal(loc,pla,false)) {
         cerr << board << endl;
         cerr << "Branch Illegal move for " << PlayerIO::colorToChar(pla) << ": " << Location::toString(loc,board) << endl;
         return 1;
@@ -334,7 +332,6 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
     sout << endl;
 
     sout << "Komi: " << copyHist.rules.komi << endl;
-    sout << "WBonus: " << copyHist.whiteBonusScore << endl;
     sout << "Final: "; WriteSgf::printGameResult(sout, copyHist); sout << endl;
   }
 
@@ -358,7 +355,7 @@ int MainCmds::evalsgf(int argc, const char* const* argv) {
   if(printLead) {
     BoardHistory hist2(hist);
     double lead = PlayUtils::computeLead(
-      bot->getSearchStopAndWait(), NULL, board, hist2, nextPla,
+      bot->getSearch(), bot->getSearch(), board, hist2, nextPla,
       20, logger, OtherGameProperties()
     );
     cout << "LEAD: " << lead << endl;

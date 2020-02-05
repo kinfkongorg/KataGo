@@ -192,7 +192,7 @@ int MainCmds::benchmark(int argc, const char* const* argv) {
   {
     Board board(sgf->xSize,sgf->ySize);
     Player nextPla = P_BLACK;
-    BoardHistory hist(board,nextPla,Rules(),0);
+    BoardHistory hist(board,nextPla,Rules());
     SearchParams thisParams = params;
     thisParams.numThreads = 1;
     thisParams.maxVisits = 5;
@@ -304,7 +304,7 @@ int MainCmds::benchmark(int argc, const char* const* argv) {
 #ifdef USE_CUDA_BACKEND
   cout << "Your GTP config is currently set to cudaUseFP16 = " << nnEval->getUsingFP16Mode().toString()
        << " and cudaUseNHWC = " << nnEval->getUsingNHWCMode().toString() << endl;
-  if(nnEval->getUsingFP16Mode() == enabled_t::False)
+  if(nnEval->getUsingFP16Mode() == enabled_t::FALSE)
     cout << "If you have a strong GPU capable of FP16 tensor cores (e.g. RTX2080) setting these both to true may give a large performance boost." << endl;
 #endif
 #ifdef USE_OPENCL_BACKEND

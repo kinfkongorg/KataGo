@@ -6,28 +6,8 @@
 
 struct Rules {
 
-  static const int KO_SIMPLE = 0;
-  static const int KO_POSITIONAL = 1;
-  static const int KO_SITUATIONAL = 2;
-  static const int KO_SPIGHT = 3;
-  int koRule;
-
   static const int SCORING_AREA = 0;
-  static const int SCORING_TERRITORY = 1;
   int scoringRule;
-
-  static const int TAX_NONE = 0;
-  static const int TAX_SEKI = 1;
-  static const int TAX_ALL = 2;
-  int taxRule;
-
-  bool multiStoneSuicideLegal;
-  bool hasButton;
-
-  static const int WHB_ZERO = 0;
-  static const int WHB_N = 1;
-  static const int WHB_N_MINUS_ONE = 2;
-  int whiteHandicapBonusRule;
 
   float komi;
   //Min and max acceptable komi in various places involving user input validation
@@ -44,20 +24,10 @@ struct Rules {
   bool gameResultWillBeInteger() const;
 
   static Rules getTrompTaylorish();
-  static Rules getSimpleTerritory();
 
-  static std::set<std::string> koRuleStrings();
   static std::set<std::string> scoringRuleStrings();
-  static std::set<std::string> taxRuleStrings();
-  static std::set<std::string> whiteHandicapBonusRuleStrings();
-  static int parseKoRule(const std::string& s);
   static int parseScoringRule(const std::string& s);
-  static int parseTaxRule(const std::string& s);
-  static int parseWhiteHandicapBonusRule(const std::string& s);
-  static std::string writeKoRule(int koRule);
   static std::string writeScoringRule(int scoringRule);
-  static std::string writeTaxRule(int taxRule);
-  static std::string writeWhiteHandicapBonusRule(int whiteHandicapBonusRule);
 
   static bool komiIsIntOrHalfInt(float komi);
 
@@ -74,11 +44,7 @@ struct Rules {
   std::string toJsonString() const;
   std::string toJsonStringNoKomi() const;
 
-  static const Hash128 ZOBRIST_KO_RULE_HASH[4];
   static const Hash128 ZOBRIST_SCORING_RULE_HASH[2];
-  static const Hash128 ZOBRIST_TAX_RULE_HASH[3];
-  static const Hash128 ZOBRIST_MULTI_STONE_SUICIDE_HASH;
-  static const Hash128 ZOBRIST_BUTTON_HASH;
 };
 
 #endif  // GAME_RULES_H_

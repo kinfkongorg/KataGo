@@ -201,12 +201,12 @@ void LZSample::parse(
       board.setStone(loc,stones[7][loc]);
     }
   }
-  hist.clear(board,opp,Rules::getTrompTaylorish(),0);
+  hist.clear(board,opp,Rules::getTrompTaylorish());
   for(int i = 6; i>=0; i--)
   {
     Move move = moves[7-i-1];
     bool multiStoneSuicideLegal = true; //True for LZ
-    bool suc = board.isLegal(move.loc,move.pla,multiStoneSuicideLegal);
+    bool suc = board.isLegal(move.loc,move.pla,false);
     if(!suc)
       throw IOError(string("Leela zero illegal implied move"));
 

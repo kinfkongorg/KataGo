@@ -107,15 +107,8 @@ class GameInitializer {
   std::mutex createGameMutex;
   Rand rand;
 
-  std::vector<std::string> allowedKoRuleStrs;
   std::vector<std::string> allowedScoringRuleStrs;
-  std::vector<std::string> allowedTaxRuleStrs;
-  std::vector<bool> allowedMultiStoneSuicideLegals;
-  std::vector<bool> allowedButtons;
-
-  std::vector<int> allowedKoRules;
   std::vector<int> allowedScoringRules;
-  std::vector<int> allowedTaxRules;
 
   std::vector<int> allowedBSizes;
   std::vector<double> allowedBSizeRelProbs;

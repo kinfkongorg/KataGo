@@ -15,7 +15,7 @@
 using namespace std;
 
 static void writeLine(
-  const Search* search, const BoardHistory& baseHist,
+  Search* search, const BoardHistory& baseHist,
   const vector<double>& winLossHistory, const vector<double>& scoreHistory, const vector<double>& scoreStdevHistory
 ) {
   const Board board = search->getRootBoard();
@@ -57,8 +57,6 @@ static void writeLine(
   cout << NNPos::locToPos(moveLoc,board.x_size,nnXLen,nnYLen) << " ";
 
   cout << baseHist.moveHistory.size() << " ";
-  cout << board.numBlackCaptures << " ";
-  cout << board.numWhiteCaptures << " ";
 
   for(int y = 0; y<board.y_size; y++) {
     for(int x = 0; x<board.x_size; x++) {
@@ -118,7 +116,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
 
   board = Board(size,size);
   pla = P_BLACK;
-  hist.clear(board,pla,Rules::getTrompTaylorish(),0);
+  hist.clear(board,pla,Rules::getTrompTaylorish());
   bot->setPosition(pla,board,hist);
 
   if(size == 19) {
@@ -307,7 +305,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
 
         if(nextMove.loc == Board::NULL_LOC) {
           wasSpecified = false;
-          Search* search = bot->getSearchStopAndWait();
+          Search* search = bot->getSearch();
           NNResultBuf buf;
           MiscNNInputParams nnInputParams;
           nnInputParams.drawEquivalentWinsForWhite = search->searchParams.drawEquivalentWinsForWhite;
@@ -329,7 +327,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
         hist.makeBoardMoveAssumeLegal(board,nextMove.loc,nextMove.pla,NULL);
         pla = getOpp(pla);
 
-        hist.clear(board,pla,hist.rules,0);
+        hist.clear(board,pla,hist.rules);
         bot->setPosition(pla,board,hist);
 
         movesPlayed.push_back(nextMove);
@@ -345,7 +343,7 @@ static void initializeDemoGame(Board& board, BoardHistory& hist, Player& pla, Ra
       } //Close while(true)
 
       int numVisits = 20;
-      PlayUtils::adjustKomiToEven(bot->getSearchStopAndWait(),NULL,board,hist,pla,numVisits,logger,OtherGameProperties(),rand);
+      PlayUtils::adjustKomiToEven(bot->getSearch(),bot->getSearch(),board,hist,pla,numVisits,logger,OtherGameProperties(),rand);
       double komi = hist.rules.komi + 0.3 * rand.nextGaussian();
       komi = 0.5 * round(2.0 * komi);
       hist.setKomi((float)komi);
@@ -432,7 +430,7 @@ int MainCmds::demoplay(int argc, const char* const* argv) {
 
     Player pla = P_BLACK;
     Board baseBoard;
-    BoardHistory baseHist(baseBoard,pla,Rules::getTrompTaylorish(),0);
+    BoardHistory baseHist(baseBoard,pla,Rules::getTrompTaylorish());
     TimeControls tc;
 
     initializeDemoGame(baseBoard, baseHist, pla, gameRand, bot, logger);
@@ -445,7 +443,7 @@ int MainCmds::demoplay(int argc, const char* const* argv) {
 
     double callbackPeriod = 0.05;
 
-    auto callback = [&baseHist,&recentWinLossValues,&recentScores,&recentScoreStdevs](const Search* search) {
+    auto callback = [&baseHist,&recentWinLossValues,&recentScores,&recentScoreStdevs](Search* search) {
       writeLine(search,baseHist,recentWinLossValues,recentScores,recentScoreStdevs);
     };
 
