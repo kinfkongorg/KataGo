@@ -1,16 +1,5 @@
-I modified Katago to support different board games.
-
-Now there are Capture Go, Gomoku/Renju, Reversi.
-
-Reversi has been opensourced in Reversi branch.(But no GUI support it, you can use it in cmd, or YZY's lizzie(support gomoku, not reversi,so you should image which stones are black/white in your brain)). A neutral net is published in release page.
-
-Gomoku/Renju will be published after Gomocup 2020(No matter I take part in it or not).
-
-I'll rewrite Capture Go with new code when I have time.Old version has some bugs.
-
-
-
-
+Katagomo
+Haven't uploaded yet. I will publish it after Gomocup
 
 
 
