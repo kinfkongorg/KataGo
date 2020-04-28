@@ -1,7 +1,11 @@
 Katagomo
+
 Wait until May 5, because I'm busy now.
+
 Lizzie-yzy(a graphical interface of Go AIs) support it.
+
 QQ group : 1049389629 (the answer to enter the group is "三三四四长连")
+
 email : 2658628026@qq.com
 
 
