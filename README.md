@@ -1,14 +1,15 @@
 Katagomo
 
-Wait until May 5, because I'm busy now.
+Wait until May 6, because I'm busy now.
+Maybe opensourced on May 10
 
 Lizzie-yzy(a graphical interface of Go AIs) support it.
 
-QQ group : 1049389629 (the answer to enter the group is "三三四四长连")
+QQ group : 1049389629 (the answer to enter the group HAS CHANGED, NOT "三三四四长连")
 
 email : 2658628026@qq.com
 
-
+Tonight(2020.5.5) I will publish a Chinese version(because I'm too busy and have no time to write an English instruction recent days)
 
 
 
