@@ -1,15 +1,68 @@
 Katagomo
 
-Wait until May 6, because I'm busy now.
-Maybe opensourced on May 10
+Sorry for delaying so many days.
+You can download it here. Sorry there's no English version and English instruction. Only Chinese version.
+https://drive.google.com/open?id=16Cigk3UZRwoTqnXwQPc59U5R2n1yLzA0
+You should install JRE first, then run lizzie-yzy1.1-shaded.jar
 
-Lizzie-yzy(a graphical interface of Go AIs) support it.
+Maybe opensource in June or July or August
 
-QQ group : 1049389629 (the answer to enter the group HAS CHANGED, NOT "三三四四长连")
-
+QQ: 2658628026
+QQ group : 1049389629 
 email : 2658628026@qq.com
 
-Tonight(2020.5.5) I will publish a Chinese version(because I'm too busy and have no time to write an English instruction recent days)
+Chinese instruction:
+----------------------------------------------------------------------------------------------------------------
+
+Katago原作者lightvector(David Wu),源代码https://github.com/lightvector/KataGo(是个围棋ai,基本上是AlphaZero算法，有一些改进)。
+我把它修改成了五子棋，现在支持无禁手和有禁手规则，新添加了无禁六不胜
+禁手判断使用Wenzhe Lu的ForbiddenPointFinder，代码层面的多重禁手的判定不会有问题
+
+新增功能：nbest   在lizzie界面按e可以弹出gtp界面，此时输入nbest n(n为任意正浮点数)然后回车，第一选点的计算量就会被限制在 总计算量/n 以下。
+
+由于是拿围棋软件修改的，通讯协议都是围棋的，所以一切五子棋界面都不支持这个引擎。现在只可以使用yzy制作的lizzie界面加载它
+由于lizzie是围棋程序界面，所以界面上有很多围棋相关按钮，如果只使用五子棋请忽略
+感谢yzy提供lizzie对五子棋的支持
+
+选点的第一行是胜率(胜100，负0，和50)，第二行是计算量(k是1000，M是1000000)，第三行是和棋率。右上角的数字是选点优劣排序，其中最优选点会变成青色。
+
+目前只支持显卡版(核显也能凑合)，不支持cpu版，不支持32位系统。除此以外很多老电脑不能运行(先更新一下显卡驱动，还不行那就没办法了)
+进入界面后可选择引擎
+RTX系列显卡，以及Tesla T4，Tesla V100显卡选择"Cuda 20"
+GTX系列显卡，Tesla P100, Tesla K80等其他nvidia卡选择"Cuda 10"，若打不开请更新驱动，更新驱动还不行就使用opencl版
+其他显卡(amd卡或者核显，或者以上两者打不开)选择"OpenCL"(第一次加载时间较长，大约几分钟)
+不同显卡的速度：RTX2060~8000po/s，RTX2080ti~15000po/s，10系和a卡应该慢很多(没测过, 只知道1080ti肯定比2060慢，以后权重大了更慢)
+
+更详细的说明见“说明文档”文件夹（说明文档是为了围棋写的，如果只使用五子棋，有关围棋的地方请忽略）
+lizzie可能会弹出自动更新窗口，如果你不清楚会发生什么结果，不建议更新。因为那些更新绝大部分都是给围棋更新的。
+
+棋力在主流配置上应该比embryo，弈心等强。(100po对战embryo 1s每步(约1500k计算量), 有禁胜率50%，普通无禁和无禁六不胜胜率80%(对10s一步大概50%胜率))，未来还会继续更新。
+无禁是在我本机(2*RTX2060)跑的，有禁是“画船听雨”提供算力(一个RTX2080白天跑)。
+
+权重文件在weight目录下，gomoku.txt是无禁权重，renju.txt是有禁权重，standard.txt是无禁六不胜权重。都是目前为止的最强权重。如果需要可以自己替换。
+
+感谢列表(可能会漏，想起来再补充)
+lightvector：katago原作者，改进zero算法使得单机训练变成可能
+yzy, featurecat等人：lizzie作者，yzy添加了五子棋模式。
+画船听雨：提供有禁版的训练算力
+sunny：提供了一些技术支持
+"4"(终结者的作者)：提供了vct库，不过我最后没用上(因为那个库没法高频调用)
+嘿嘿：提供了806个有禁五手开局(用来跑谱)
+"资深初学者"：帮忙联系"4"，还帮忙做过一些测试
+"第十四剑"等人：提供bug局面，其中"连五禁手"是第十四剑提供的。这类bug下个版本将解决
+土豆，喵声依旧，wind23等人：一些比较零散的帮助
+以及二指等人帮忙测试
+可能会漏掉一些重要贡献者，等我想起了就补上
+
+--------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
 
 
 
