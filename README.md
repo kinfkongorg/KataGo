@@ -8,7 +8,9 @@ You should install JRE first, then run lizzie-yzy1.1-shaded.jar
 Maybe opensource in June or July or August
 
 QQ: 2658628026
+
 QQ group : 1049389629 
+
 email : 2658628026@qq.com
 
 Chinese instruction:
@@ -39,10 +41,11 @@ lizzie可能会弹出自动更新窗口，如果你不清楚会发生什么结�
 棋力在主流配置上应该比embryo，弈心等强。(100po对战embryo 1s每步(约1500k计算量), 有禁胜率50%，普通无禁和无禁六不胜胜率80%(对10s一步大概50%胜率))，未来还会继续更新。
 无禁是在我本机(2*RTX2060)跑的，有禁是“画船听雨”提供算力(一个RTX2080白天跑)。
 
-权重文件在weight目录下，gomoku.txt是无禁权重，renju.txt是有禁权重，standard.txt是无禁六不胜权重。都是目前为止的最强权重。如果需要可以自己替换。
+权重文件在weight目录下，gomoku.txt是无禁权重，renju.txt是有禁权重，standard.txt是无禁六不胜权重。如果需要可以自己替换。
 
 感谢列表(可能会漏，想起来再补充)
 lightvector：katago原作者，改进zero算法使得单机训练变成可能
+Wenzhe Lu: Renlib的禁手判断代码的作者，此程序使用的Renlib的开源禁手判断代码
 yzy, featurecat等人：lizzie作者，yzy添加了五子棋模式。
 画船听雨：提供有禁版的训练算力
 sunny：提供了一些技术支持
