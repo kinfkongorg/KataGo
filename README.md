@@ -1,4 +1,9 @@
-Sorry I will ***NOT*** opensource it, at least in one year. And It's ***quite easy*** to rewrite it if you want. Hope someone can rewrite it because my code has become very messy.
+***Updated on 2021.4.5***
+
+I finally decide to upload the source code, cpp code (the major part) was uploaded just now, others will be uploaded later.
+
+
+
 
 Latest release: 2020.7.26 (freestyle,standard,renju,and several engines for special use), See release page
 
