@@ -10,7 +10,7 @@
 #include "../core/fancymath.h"
 #include "../core/timer.h"
 #include "../search/distributiontable.h"
-#include "../vcfsolver/vcfsolver.h"
+#include "../vcfsolver/VCFsolver.h"
 
 using namespace std;
 

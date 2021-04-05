@@ -1,5 +1,5 @@
 #include "../program/setup.h"
-#include "../vcfsolver/vcfsolver.h"
+#include "../vcfsolver/VCFsolver.h"
 #include "../neuralnet/nninterface.h"
 
 using namespace std;
