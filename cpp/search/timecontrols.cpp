@@ -1,6 +1,7 @@
 #include "../search/timecontrols.h"
 
 #include <sstream>
+#include <cmath>
 
 TimeControls::TimeControls()
   :
@@ -52,7 +53,7 @@ void TimeControls::getTime(const Board& board, const BoardHistory& hist, double 
   double maxTimePerMove = perMoveTime- lagBuffer;
   tm = std::min(tm, maxTimePerMove);
 
-  if (step == 0)tm -= 1.5;//µÚÒ»´Î¼ÓÔØÌ«Âý
+  if (step == 0)tm -= 1.5;//ï¿½ï¿½Ò»ï¿½Î¼ï¿½ï¿½ï¿½Ì«ï¿½ï¿½
 
   if (tm < 0)tm = 0;
 
