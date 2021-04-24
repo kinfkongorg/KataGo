@@ -33,7 +33,7 @@
 #define FREESTYLE 0//freestyle rule, 6 is win
 #define STANDARD 1//standard rule, 6 is not win
 #define RENJU 2//renju mode
-#define RULE 2
+#define RULE 1
 
 #if (RULE<0 || RULE>2)
 rule must be 1, 2, 3
